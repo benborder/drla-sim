@@ -1,0 +1,121 @@
+{
+	"type": "ConnectFour",
+	"environment": {
+		"expert_temperature": 0.1,
+		"visualisation_size": 16
+	},
+	"observation_save_period": 1000,
+	"observation_gif_save_period": 2000,
+	"agent": {
+		"env_count": 1,
+		"eval_period": 100,
+		"num_simulations": 200,
+		"root_dirichlet_alpha": 0.3,
+		"root_exploration_fraction": 0.25,
+		"gamma": [
+			1
+		],
+		"train_algorithm": {
+			"train_algorithm_type": "MuZero",
+			"total_timesteps": 100000,
+			"start_timestep": 0,
+			"buffer_size": 10000,
+			"start_buffer_size": 10,
+			"buffer_save_path": "buffer",
+			"batch_size": 64,
+			"td_steps": 42,
+			"unroll_steps": 42,
+			"min_reanalyse_train_steps": 10,
+			"min_reanalyse_buffer_size": 100,
+			"per_alpha": 0.5,
+			"value_loss_weight": 0.25,
+			"temperature_step": [],
+			"self_play_gpus": [],
+			"optimiser": {
+				"type": "Adam",
+				"weight_decay": 1e-4,
+				"epsilon": 1e-8,
+				"learning_rate": 0.005,
+				"lr_schedule_type": "Constant"
+			}
+		},
+		"model": {
+			"model_type": "MuZero",
+			"support_size": 10,
+			"stacked_observations": 0,
+			"representation_network": [
+				{
+					"type": "CNN",
+					"name": "representation",
+					"layers": [
+						{
+							"type": "Conv2d",
+							"out_channels": 64,
+							"kernel_size": 3,
+							"stride": 1,
+							"padding": 1,
+							"use_bias": false
+						},
+						{
+							"type": "BatchNorm2d"
+						},
+						{
+							"activation": "ReLU"
+						},
+						{
+							"type": "ResBlock2d",
+							"normalise": true
+						}
+					]
+				}
+			],
+			"dynamics_network": {
+				"num_blocks": 3,
+				"num_channels": 64,
+				"reduced_channels_reward": 2,
+				"fc_reward": {
+					"layers": [
+						{
+							"type": "Linear",
+							"size": 64
+						},
+						{
+							"activation": "ELU"
+						}
+					]
+				},
+				"fc_dynamics": {
+					"layers": []
+				}
+			},
+			"prediction_network": {
+				"num_blocks": 3,
+				"num_channels": 64,
+				"reduced_channels_value": 2,
+				"reduced_channels_policy": 4,
+				"fc_value": {
+					"layers": [
+						{
+							"type": "Linear",
+							"size": 64
+						},
+						{
+							"activation": "ELU"
+						}
+					]
+				},
+				"fc_policy": {
+					"layers": [
+						{
+							"type": "Linear",
+							"size": 64
+						},
+						{
+							"activation": "ELU"
+						}
+					]
+				}
+			}
+		}
+	}
+}
