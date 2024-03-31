@@ -6,8 +6,20 @@
 #include <cxxopts.hpp>
 #include <spdlog/spdlog.h>
 
+#include <csignal>
 #include <cstdio>
 #include <filesystem>
+#include <functional>
+
+namespace
+{
+std::function<void(int)> shutdown_handler;
+
+void signal_handler(int signum)
+{
+	shutdown_handler(signum);
+}
+} // namespace
 
 // BUG: https://github.com/pytorch/pytorch/issues/49460
 // This dummy function is a hack to fix an issue with loading pytorch models. It's unnecessary to invoke this function,
@@ -94,6 +106,18 @@ int main(int argc, char** argv)
 
 	SimTrainingLogger logger(config, data_path, resume);
 	sim::SimAgent sim_agent(std::move(config), &logger, data_path);
+
+	std::signal(SIGINT, ::signal_handler);
+	shutdown_handler = [&]([[maybe_unused]] int signum) {
+		spdlog::info("Stopping training...");
+		sim_agent.stop_train();
+		static int shutdown_attempt_count = 0;
+		++shutdown_attempt_count;
+		if (shutdown_attempt_count > 4)
+		{
+			std::abort();
+		}
+	};
 
 	sim_agent.train();
 
